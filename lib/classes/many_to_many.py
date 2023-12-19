@@ -26,10 +26,15 @@ class Coffee:
     
     def average_price(self):
         return sum([order.price for order in self.orders()])/self.num_orders()
+    
+    def __repr__(self):
+        return f"{self.name}"
 
 class Customer:
+    all = []
     def __init__(self, name):
         self.name = name
+        Customer.all.append(self)
 
     @property
     def name (self):
@@ -42,7 +47,6 @@ class Customer:
             raise Exception("Name must be between 1 and 15 characters in length")
         else: self._name = name
 
-        
     def orders(self):
         return [order for order in Order.all if order.customer == self]
     
@@ -54,14 +58,20 @@ class Customer:
     
     @classmethod
     def most_aficionado(cls, coffee):
-        orders = [order for order in Order.all if order.coffee == coffee]
-        most_aficionado = [0, None] #[price, customer_obj]
-        for order in orders:
-            if order.price > most_aficionado[0]:
-                most_aficionado = [order.price, order.customer]
-        return most_aficionado[1]
-
+        coffee_orders = [order for order in Order.all if order.coffee == coffee]
+        customer_set = list(set([order.customer for order in coffee_orders]))
+        most_aficionado = [None, 0]
+        for customer in customer_set:
+            current_customer = [customer, sum([order.price for order in coffee_orders if order.customer == customer])]
+            if current_customer[1] > most_aficionado[1]:
+                most_aficionado = current_customer
+        return most_aficionado[0]
     
+    
+    def __repr__(self):
+        return f"{self.name}"
+
+
 class Order:
     all = []
     def __init__(self, customer, coffee, price):
@@ -90,8 +100,7 @@ class Order:
     def customer(self, customer):
         if isinstance(customer, Customer):
             self._customer = customer
-        else:
-            raise Exception ("Must be of type Customer")
+        else: raise Exception ("Must be of type Customer")
     
     @property
     def coffee (self):
@@ -100,5 +109,7 @@ class Order:
     def coffee(self, coffee):
         if isinstance(coffee, Coffee):
             self._coffee = coffee
-        else:
-            raise Exception("Must be of type Coffee")
+        else: raise Exception("Must be of type Coffee")
+
+    def __repr__(self) -> str:
+        return f"Order: {self.coffee} for {self.customer}"
